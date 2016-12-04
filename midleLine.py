@@ -10,7 +10,9 @@ line2 = LineString([Point(79.98046875,59.80063426102869),Point(66.796875,53.0147
 def midline(line1, line2):
   coordinates = []
   for coord in line1.coords:
-    coordinates.append(midpoint(Point(coord),line2))
+    p = midpoint(Point(coord),line2);
+    if Point(coord).distance(p) < 1:
+      coordinates.append(p)
   return LineString(coordinates)
 
 
