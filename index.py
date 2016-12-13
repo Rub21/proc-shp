@@ -1,8 +1,9 @@
 #!/usr/bin/python
-from shapely.geometry import LineString, mapping, shape
+from shapely.geometry import LineString, mapping, shape, Point
 from fiona import collection
 # from shapely.ops import linemerge
 from shapely.ops import cascaded_union
+from rtree import index
 import midleLine
 import sys
 
@@ -13,59 +14,53 @@ geos = []
 dictionary={}
 rDictionary={}
 rCoordinates={}
+id=0
+idx = index.Index()
 with collection(sys.argv[1], "r") as input:
   for geo in input:
     name1 = __unicode__(geo['properties']['NM_TIPO_LO']) + ' ' + __unicode__(geo['properties']['NM_TITULO_']) + ' ' + __unicode__(geo['properties']['NM_NOME_LO'])
     name=name1.title()
-    if name !='None None None' and shape(geo['geometry']).type == 'LineString':
-      if dictionary.has_key(name):
-        dictionary[name].append(geo)
-      else:
-        dictionary[name]=[geo]
-
+    if shape(geo['geometry']).type == 'LineString':
+      idx.insert(id, shape(geo['geometry']).bounds)
+      dictionary[id] = geo
+      id=id+1
 
 for key in dictionary:
-  for i in dictionary[key]:
-    for j in dictionary[key]:
-      midline = midleLine.midline(shape(i['geometry']),shape(j['geometry']))
+  # print shape(dictionary[key]['geometry']).bounds
+  nearestObjs = list(idx.nearest(shape(dictionary[key]['geometry']).bounds,30))
+  for k in nearestObjs:
+    if k != key:
+      # midle line
+      midline = midleLine.midline(shape(dictionary[key]['geometry']),shape(dictionary[k]['geometry']))
       if midline != None:
-        if rDictionary.has_key(key):
-          for c in midline.coords:
-            rCoordinates[key].append(c)
-          rDictionary[key].append(midline);
-        else:
-          rCoordinates[key]=[]
-          for c in midline.coords:
-            rCoordinates[key].append(c)
-          rDictionary[key]=[midline]
+        geos.append(midline)
+      # for c in shape(dictionary[key]['geometry']).coords:
+      #   midlePoint =midleLine.midpoint2(Point(c),shape(dictionary[k]['geometry']))
+      #   if midlePoint != None and dictionary[key]['properties']['CD_SECTOR'] != dictionary[k]['properties']['CD_SECTOR']:
+      #     geos.append(midlePoint)
 
 
-# schema = { 'geometry': 'LineString', 'properties': { 'name': 'str' } }
-# with collection("result.shp", "w", "ESRI Shapefile", schema) as output:
-#   for key in rDictionary:
-#     # print rCoordinates[key]
-#     # sortedCoords = sorted(rCoordinates[key] , key=lambda k: [k[1], k[0]])
-
-#     output.write({
-#       'properties': {
-#         'name': key
-#       },
-#       'geometry': mapping(LineString(rCoordinates[key]))
-#     })
-        
-        
 
 
 schema = { 'geometry': 'LineString', 'properties': { 'name': 'str' } }
 with collection("result.shp", "w", "ESRI Shapefile", schema) as output:
-  for key in dictionary:
-    for i in dictionary[key]:
-     for j in dictionary[key]:
-      midline = midleLine.midline(shape(i['geometry']),shape(j['geometry']))
-      if midline != None:
-        output.write({
-          'properties': {
-            'name': key
+  for geo in geos:
+    # print geo
+    output.write({
+      'properties': {
+            'name': str(key)
           },
-          'geometry': mapping(midline)
-        })
+          'geometry': mapping(geo)
+      })
+
+
+# schema = { 'geometry': 'Point', 'properties': { 'name': 'str' } }
+# with collection("result.shp", "w", "ESRI Shapefile", schema) as output:
+#   for geo in geos:
+#     # print geo
+#     output.write({
+#       'properties': {
+#             'name': str(key)
+#           },
+#           'geometry': mapping(geo)
+#       })

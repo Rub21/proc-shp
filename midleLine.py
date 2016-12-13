@@ -12,7 +12,7 @@ def midline(line1, line2):
   for coord in line1.coords:
     p = midpoint(Point(coord),line2);
     # print Point(coord).distance(p)
-    if (Point(coord).distance(p) < 0.0001) and (Point(coord).distance(p) > 0):
+    if (Point(coord).distance(p) < 0.0002) and (Point(coord).distance(p) > 0):
       coordinates.append(p)
   if len(coordinates)>1:
     return LineString(coordinates)
@@ -23,3 +23,10 @@ def midpoint(point, line):
     np = line.interpolate(line.project(point))
     return Point((point.x+np.x)/2, (point.y+np.y)/2)
 # print json.dumps(mapping(midline(line1,line2)))
+
+def midpoint2(point, line):
+    p = midpoint(point,line);
+    if (point.distance(p) < 0.0002) and (point.distance(p) > 0):
+      return p
+    else:
+      return None
