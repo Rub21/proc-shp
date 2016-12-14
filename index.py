@@ -26,24 +26,24 @@ with collection(sys.argv[1], "r") as input:
       id=id+1
 
 for key in dictionary:
-  # print shape(dictionary[key]['geometry']).bounds
   nearestObjs = list(idx.nearest(shape(dictionary[key]['geometry']).bounds,30))
+  pkey = dict(dictionary[key]['properties'])
+  # print pkey['CD_SETOR']
   for k in nearestObjs:
+    pk=dict(dictionary[k]['properties'])
     if k != key:
-      # midle line
       midline = midleLine.midline(shape(dictionary[key]['geometry']),shape(dictionary[k]['geometry']))
-      if midline != None:
+      if midline != None and (not midline.is_closed) :
         geos.append(midline)
       # for c in shape(dictionary[key]['geometry']).coords:
       #   midlePoint =midleLine.midpoint2(Point(c),shape(dictionary[k]['geometry']))
-      #   if midlePoint != None and dictionary[key]['properties']['CD_SECTOR'] != dictionary[k]['properties']['CD_SECTOR']:
+      #   if midlePoint != None :
       #     geos.append(midlePoint)
 
 
 
-
 schema = { 'geometry': 'LineString', 'properties': { 'name': 'str' } }
-with collection("result.shp", "w", "ESRI Shapefile", schema) as output:
+with collection("linea.shp", "w", "ESRI Shapefile", schema) as output:
   for geo in geos:
     # print geo
     output.write({
@@ -55,7 +55,7 @@ with collection("result.shp", "w", "ESRI Shapefile", schema) as output:
 
 
 # schema = { 'geometry': 'Point', 'properties': { 'name': 'str' } }
-# with collection("result.shp", "w", "ESRI Shapefile", schema) as output:
+# with collection("puntos.shp", "w", "ESRI Shapefile", schema) as output:
 #   for geo in geos:
 #     # print geo
 #     output.write({
