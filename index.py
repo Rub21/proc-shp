@@ -21,6 +21,7 @@ with collection(sys.argv[1], "r") as input:
     name1 = __unicode__(geo['properties']['NM_TIPO_LO']) + ' ' + __unicode__(geo['properties']['NM_TITULO_']) + ' ' + __unicode__(geo['properties']['NM_NOME_LO'])
     name=name1.title()
     if shape(geo['geometry']).type == 'LineString':
+
       idx.insert(id, shape(geo['geometry']).bounds)
       dictionary[id] = geo
       id=id+1
@@ -34,33 +35,24 @@ for key in dictionary:
     if k != key:
       midline = midleLine.midline(shape(dictionary[key]['geometry']),shape(dictionary[k]['geometry']))
       if midline != None and (not midline.is_closed) :
-        geos.append(midline)
-      # for c in shape(dictionary[key]['geometry']).coords:
-      #   midlePoint =midleLine.midpoint2(Point(c),shape(dictionary[k]['geometry']))
-      #   if midlePoint != None :
-      #     geos.append(midlePoint)
-
+        int1=midline.intersection(shape(dictionary[key]['geometry'])).is_empty
+        int2=midline.intersection(shape(dictionary[k]['geometry'])).is_empty
+        if int2 and int1:
+            intersects = list(idx.nearest(midline.bounds,10))
+            flag=True
+            for x in intersects:
+               if not shape(dictionary[x]['geometry']).intersection(midline).is_empty:
+                flag=False
+            if flag:
+              geos.append(midline)
 
 
 schema = { 'geometry': 'LineString', 'properties': { 'name': 'str' } }
 with collection("linea.shp", "w", "ESRI Shapefile", schema) as output:
   for geo in geos:
-    # print geo
     output.write({
       'properties': {
             'name': str(key)
           },
           'geometry': mapping(geo)
       })
-
-
-# schema = { 'geometry': 'Point', 'properties': { 'name': 'str' } }
-# with collection("puntos.shp", "w", "ESRI Shapefile", schema) as output:
-#   for geo in geos:
-#     # print geo
-#     output.write({
-#       'properties': {
-#             'name': str(key)
-#           },
-#           'geometry': mapping(geo)
-#       })

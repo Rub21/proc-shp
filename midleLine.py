@@ -12,9 +12,9 @@ def midline(line1, line2):
   for coord in line1.coords:
     p = midpoint(Point(coord),line2);
     # print Point(coord).distance(p)
-    if (Point(coord).distance(p) < 0.0002) and (Point(coord).distance(p) > 0):
+    if (Point(coord).distance(p) < 0.0001) and (Point(coord).distance(p) > 0):
       coordinates.append(p)
-  if len(coordinates)>1:
+  if len(coordinates)> len(line1.coords)/2:
     return LineString(coordinates)
   else:
     return None
@@ -30,3 +30,15 @@ def midpoint2(point, line):
       return p
     else:
       return None
+
+
+def pair(list):
+    for i in range(1, len(list)):
+        yield list[i-1], list[i]
+
+def segmets(line):
+  for seg_start, seg_end in pair(geom.coords):
+      line_start = Point(seg_start)
+      line_end = Point(seg_end)
+      segment = LineString([line_start.coords[0],line_end.coords[0]])
+      print segment
