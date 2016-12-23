@@ -9,6 +9,7 @@ import sys
 import fiona
 import shapely.geometry
 import shapely.ops
+from math import atan2
 
 def __unicode__(self):
   return unicode(self) or u''
@@ -114,9 +115,9 @@ for key in dictMerge:
     for c in cs:
       coords.append(c)
   # print coords
-  sortedCoords = sorted(coords , key=lambda k: [k[1], k[0]])
+  coords.sort(key=lambda c:atan2(c[0], c[1]))
 
-  for y in sortedCoords:
+  for y in coords:
     points.append(Point(y))
   l =  {
         'properties': {

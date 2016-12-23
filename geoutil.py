@@ -123,3 +123,25 @@ def get_angle1(p0, p1, p2):
 
     angle = np.math.atan2(np.linalg.det([v0,v1]),np.dot(v0,v1))
     return abs(np.degrees(angle))
+
+
+import itertools as it
+import math
+def sortCoords(coords):
+  cur = 0
+  path = [cur]
+  totalDist = 0
+  for i in range(1,len(coords)):
+      dists = [(dist(coords[i],p), pi) for (pi,p) in enumerate(coords) if pi != i and pi not in path]
+      nextDist, cur = min(dists)
+      totalDist += nextDist
+      path.append(cur)
+  return path
+  # paths = [ p for p in it.permutations(coords) ]
+  # path_distances = [ sum(map(lambda x: dist(x[0],x[1]),zip(p[:-1],p[1:]))) for p in paths ]
+  # min_index = argmin(path_distances)
+  # return paths[min_index]
+
+def dist(x,y):
+    return math.hypot(y[0]-x[0],y[1]-x[1])
+
